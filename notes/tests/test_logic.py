@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from pytils.translit import slugify
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
@@ -44,6 +45,16 @@ class TestNoteCreation(TestCase):
         self.assertEqual(note.title, self.NOTE_TITLE)
         self.assertEqual(note.slug, self.NOTE_SLUG)
         self.assertEqual(note.author, self.reader)
+
+    def test_empty_slug(self):
+        """Тестирование добавления заметки с пустым слагом"""
+        self.form_data.pop('slug')
+        response = self.auth_client.post(self.url_add, data=self.form_data)
+        self.assertRedirects(response, self.url_success)
+        self.assertEqual(Note.objects.count(), 1)
+        new_note = Note.objects.get()
+        expected_slug = slugify(self.form_data['title'])
+        self.assertEqual(new_note.slug, expected_slug)
 
 
 class TestCommentEditDelete(TestCase):
